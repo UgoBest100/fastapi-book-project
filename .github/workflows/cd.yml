@@ -1,0 +1,37 @@
+name: Deploy FastAPI Project
+
+on:
+  push:
+    branches:
+      - main
+# on:
+#   pull_request:
+#     types:
+#       - closed
+#     branches:
+#       - main
+
+jobs:
+  deploy:
+    # if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Application
+        env:
+          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          HOST_NAME: ${{ secrets.HOST_NAME }}
+          USER_NAME: ${{ secrets.USER_NAME }}
+        run: |
+          echo "$PRIVATE_KEY" > privatekey.pem
+          chmod 600 privatekey.pem
+
+          trap "rm -f privatekey.pem" EXIT
+
+          ssh -o StrictHostKeyChecking=no -i privatekey.pem ${USER_NAME}@${HOST_NAME} << 'EOF'
+            cd ~/fastapi-book-project
+            git pull origin main
+            source venv/bin/activate
+            pip install -r requirements.txt
+            sudo service fastapi restart
+            sudo service nginx restart
+          EOF
