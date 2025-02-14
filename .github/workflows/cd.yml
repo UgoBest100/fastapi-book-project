@@ -28,4 +28,4 @@ jobs:
 
       - name: SSH into AWS VM and deploy
         run: |
-          ssh -i ~/.ssh/aws_key.pem ubuntu@18.191.58.74 "cd /home/ubuntu/fastapi-book-project && git pull origin main && sudo systemctl restart fastapi && sudo systemctl restart nginx"
+          ssh -i ~/.ssh/aws_key.pem ubuntu@18.191.58.74 "cd /home/ubuntu/fastapi-book-project && git pull && sudo systemctl restart fastapi && sudo systemctl restart nginx"
