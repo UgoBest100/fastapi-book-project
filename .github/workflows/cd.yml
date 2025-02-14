@@ -16,22 +16,16 @@ jobs:
     # if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy Application
-        env:
-          PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          HOST_NAME: ${{ secrets.HOST_NAME }}
-          USER_NAME: ${{ secrets.USER_NAME }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
         run: |
-          echo "$PRIVATE_KEY" > privatekey.pem
-          chmod 600 privatekey.pem
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AWS_SSH_PRIVATE_KEY }}" > ~/.ssh/aws_key.pem
+          chmod 600 ~/.ssh/aws_key.pem
+          ssh-keyscan -H 18.191.58.74 >> ~/.ssh/known_hosts
 
-          trap "rm -f privatekey.pem" EXIT
-
-          ssh -o StrictHostKeyChecking=no -i privatekey.pem ${USER_NAME}@${HOST_NAME} << 'EOF'
-            cd ~/fastapi-book-project
-            git pull origin main
-            source venv/bin/activate
-            pip install -r requirements.txt
-            sudo service fastapi restart
-            sudo service nginx restart
-          EOF
+      - name: SSH into AWS VM and deploy
+        run: |
+          ssh -i ~/.ssh/aws_key.pem ubuntu@18.191.58.74 "cd /home/ubuntu/fastapi-book-project && git pull && sudo systemctl restart fastapi"
