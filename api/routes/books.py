@@ -76,5 +76,5 @@ async def delete_book(book_id: int) -> None:
 async def test():
     return JSONResponse(
 	status_code=status.HTTP_200_OK,
-	content={"detail":"success"}
+	content={"detail":"Test success"}
 	)
